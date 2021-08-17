@@ -459,8 +459,6 @@ centrifuge.start = function(opts)
         opts = {}
     end
 
-    rawset(_G, "centrifuge", centrifuge)
-
     indexpiration(
         box.space.pubs,
         {
@@ -777,8 +775,6 @@ function centrifuge.presence_stats(channel)
 end
 
 function centrifuge.stop()
-    rawset(_G, "centrifuge", nil)
-
     box.session.on_disconnect(on_disconnect, nil)
     rawset(_G, "__centrifuge_cleanup_set", nil)
 end

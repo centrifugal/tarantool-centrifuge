@@ -1,3 +1,3 @@
 # tarantool-centrifuge
 
-Base Lua module for Centrifuge/Centrifugo Tarantool Engine
+Base Lua module to build Centrifugo Tarantool Engine

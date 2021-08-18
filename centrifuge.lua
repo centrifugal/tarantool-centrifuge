@@ -376,7 +376,11 @@ centrifuge.init_spaces = function(opts)
     local pubs_sync = opts.pubs_sync or false
     local meta_sync = opts.meta_sync or false
 
-    box.schema.create_space("pubs", {if_not_exists = true, is_sync = pubs_sync})
+    local pubs_opts = {if_not_exists = true}
+    if pubs_sync == true then
+        pubs_opts.is_sync = true
+    end
+    box.schema.create_space("pubs", pubs_opts)
     box.space.pubs:format(
         {
             {name = "id", type = "unsigned"},
@@ -409,7 +413,11 @@ centrifuge.init_spaces = function(opts)
         }
     )
 
-    box.schema.create_space("meta", {if_not_exists = true, is_sync = meta_sync})
+    local meta_opts = {if_not_exists = true}
+    if meta_sync == true then
+        meta_opts.is_sync = true
+    end
+    box.schema.create_space("meta", meta_opts)
     box.space.meta:format(
         {
             {name = "channel", type = "string"},

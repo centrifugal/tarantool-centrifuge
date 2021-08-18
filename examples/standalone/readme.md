@@ -1,4 +1,4 @@
-Single instance Tarantool engine for Centrifugo: 
+Example of a single instance Tarantool engine for Centrifugo: 
 
 ```
 tarantoolctl rocks install https://raw.githubusercontent.com/centrifugal/tarantool-centrifuge/main/centrifuge-scm-1.rockspec

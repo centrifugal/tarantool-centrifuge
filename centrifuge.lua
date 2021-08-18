@@ -6,6 +6,11 @@ local json = require "json".new()
 
 json.cfg {encode_invalid_as_nil = true}
 
+--==================================================================================
+-- Embedded indexpiration with some adjustments to stop a worker on non-leader node.
+-- Original: https://github.com/moonlibs/indexpiration
+--==================================================================================
+
 local M = {}
 
 local function table_clear(t)
@@ -333,9 +338,10 @@ local function indexpiration(space, opts)
     M.upgrade(space, opts, 1)
 end
 
---================================================================================
--- Centrifuge Tarantool module, provides Broker and PresenceManager functionality.
---================================================================================
+--===================================================================
+-- Centrifuge Tarantool module.
+-- Provides PUB/SUB, ephemeral history streams and channel presence.
+--===================================================================
 
 local centrifuge = {}
 

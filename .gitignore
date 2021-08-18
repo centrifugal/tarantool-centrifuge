@@ -1,3 +1,8 @@
+/examples/standalone/tmp/*
+!/examples/standalone/tmp/.keep
+
+.rocks
+
 # Compiled Lua sources
 luac.out
 

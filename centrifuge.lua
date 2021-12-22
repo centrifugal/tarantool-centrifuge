@@ -388,7 +388,6 @@ centrifuge.init_spaces = function(opts)
             {name = "offset", type = "unsigned"},
             {name = "exp", type = "number"},
             {name = "data", type = "string"},
-            {name = "info", type = "string"}
         }
     )
     box.space.pubs:create_index(
@@ -447,8 +446,7 @@ centrifuge.init_spaces = function(opts)
             {name = "channel", type = "string"},
             {name = "client_id", type = "string"},
             {name = "user_id", type = "string"},
-            {name = "conn_info", type = "string"},
-            {name = "chan_info", type = "string"},
+            {name = "data", type = "string"},
             {name = "exp", type = "number"}
         }
     )
@@ -589,7 +587,6 @@ end
 
 local function wake_up_subscribers(channel)
     local ids = centrifuge.channel_to_ids[channel] or {}
-
     for k, _ in pairs(ids) do
         local chan = centrifuge.id_to_fiber[k]
         if chan:has_readers() then
@@ -598,7 +595,7 @@ local function wake_up_subscribers(channel)
     end
 end
 
-function centrifuge._publish(msg_type, channel, data, info, ttl, size, meta_ttl)
+function centrifuge._publish(msg_type, channel, data, ttl, size, meta_ttl)
     local epoch = ""
     local offset = 0
 
@@ -619,7 +616,7 @@ function centrifuge._publish(msg_type, channel, data, info, ttl, size, meta_ttl)
         -- Need to use field numbers to work with Tarantool 1.10, otherwise we could write:
         -- box.space.meta:upsert({channel, offset, epoch, meta_exp}, {{'=', 'channel', channel}, {'+', 'offset', 1}, {'=', 'exp', meta_exp}})
         box.space.meta:upsert({channel, offset, epoch, meta_exp}, {{"=", 1, channel}, {"+", 2, 1}, {"=", 4, meta_exp}})
-        box.space.pubs:auto_increment {channel, offset, clock.realtime() + tonumber(ttl), data, info}
+        box.space.pubs:auto_increment {channel, offset, clock.realtime() + tonumber(ttl), data}
         local max_offset_to_keep = offset - size
         if max_offset_to_keep > 0 then
             for _, v in box.space.pubs.index.channel:pairs({channel, max_offset_to_keep}, {iterator = box.index.LE}) do
@@ -628,14 +625,14 @@ function centrifuge._publish(msg_type, channel, data, info, ttl, size, meta_ttl)
         end
     end
     -- raise
-    publish_to_subscribers(channel, {msg_type, channel, offset, epoch, data, info})
+    publish_to_subscribers(channel, {msg_type, channel, offset, epoch, data})
     -- raise
     wake_up_subscribers(channel)
 
     return {epoch = epoch, offset = offset}
 end
 
-function centrifuge.publish(msg_type, channel, data, info, ttl, size, meta_ttl)
+function centrifuge.publish(msg_type, channel, data, ttl, size, meta_ttl)
     if not ttl then
         ttl = 0
     end
@@ -647,15 +644,14 @@ function centrifuge.publish(msg_type, channel, data, info, ttl, size, meta_ttl)
     end
 
     box.begin()
-    local rc, res = pcall(centrifuge._publish, msg_type, channel, data, info, ttl, size, meta_ttl)
+    local rc, res = pcall(centrifuge._publish, msg_type, channel, data, ttl, size, meta_ttl)
     if not rc then
         log.warn(
-            "Publish error: %q %q %q %q %q %q %q %q",
+            "Publish error: %q %q %q %q %q %q %q",
             tostring(res),
             msg_type,
             channel,
             data,
-            info,
             ttl,
             size,
             meta_ttl
@@ -743,19 +739,12 @@ function centrifuge.remove_history(channel)
     box.commit()
 end
 
-function centrifuge.add_presence(channel, ttl, client_id, user_id, conn_info, chan_info)
+function centrifuge.add_presence(channel, ttl, client_id, user_id, data)
     if not ttl then
         ttl = 0
     end
-    if not conn_info then
-        conn_info = ""
-    end
-    if not chan_info then
-        chan_info = ""
-    end
-
     local exp = clock.realtime() + ttl
-    box.space.presence:put({channel, client_id, user_id, conn_info, chan_info, exp})
+    box.space.presence:put({channel, client_id, user_id, data, exp})
 end
 
 function centrifuge.remove_presence(channel, client_id)

@@ -569,7 +569,7 @@ function centrifuge.unsubscribe(id, channels)
         if centrifuge.channel_to_ids[v] then
             centrifuge.channel_to_ids[v][id] = nil
         end
-        if centrifuge.id_to_channels[id] then
+        if centrifuge.id_to_channels[id] and next(centrifuge.id_to_channels[id]) == nil then
             centrifuge.id_to_channels[id] = nil
         end
         if centrifuge.channel_to_ids[v] and next(centrifuge.channel_to_ids[v]) == nil then

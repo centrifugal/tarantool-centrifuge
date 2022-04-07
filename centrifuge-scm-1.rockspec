@@ -1,7 +1,7 @@
 package = 'centrifuge'
 version = 'scm-1'
 source  = {
-    url    = 'git://github.com/centrifugal/tarantool-centrifuge.git',
+    url    = 'git+https://github.com/centrifugal/tarantool-centrifuge.git',
     branch = 'master',
 }
 description = {
